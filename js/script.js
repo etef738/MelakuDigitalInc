@@ -357,79 +357,188 @@ function clearValidationErrors() {
 }
 
 // ============================================
-// PHASE 4: AI CHAT WIDGET
+// PHASE 4: AI CHAT WIDGET (Gemini-powered)
 // ============================================
 
 document.addEventListener('DOMContentLoaded', () => {
-    const chatWidget = document.getElementById('chat-widget');
-    const chatToggle = document.getElementById('chat-toggle');
-    const chatClose = document.getElementById('chat-close');
-    const chatMessages = document.getElementById('chat-messages');
-    const chatInput = document.getElementById('chat-input');
-    const chatSend = document.getElementById('chat-send');
-    
-    if (!chatWidget || !chatToggle) return;
-    
-    // Toggle chat widget
-    chatToggle.addEventListener('click', () => {
-        chatWidget.classList.toggle('open');
-        if (chatWidget.classList.contains('open')) {
-            chatInput.focus();
+    const chatWidgetWindow = document.getElementById('chatWidgetWindow');
+    const chatWidgetButton = document.getElementById('chatWidgetButton');
+    const chatMessages = document.getElementById('chatMessages');
+    const chatInput = document.getElementById('chatInput');
+    const chatSendButton = document.getElementById('chatSendButton');
+    const chatOptionButtons = document.querySelectorAll('.chat-option-button');
+    const chatOptions = document.querySelector('.chat-options');
+
+    if (!chatWidgetWindow || !chatWidgetButton) return;
+
+    // Conversation history for multi-turn context
+    const conversationHistory = [];
+
+    // Toggle chat window open/close
+    chatWidgetButton.addEventListener('click', () => {
+        const isOpen = chatWidgetWindow.classList.toggle('active');
+        chatWidgetButton.classList.toggle('active', isOpen);
+        chatWidgetButton.textContent = isOpen ? '✕' : '💬';
+        chatWidgetButton.setAttribute('aria-label', isOpen ? 'Close chat' : 'Open chat');
+        if (isOpen && chatInput) chatInput.focus();
+    });
+
+    // Close when clicking outside
+    document.addEventListener('click', (e) => {
+        if (chatWidgetWindow.classList.contains('active') &&
+            !chatWidgetWindow.contains(e.target) &&
+            !chatWidgetButton.contains(e.target)) {
+            chatWidgetWindow.classList.remove('active');
+            chatWidgetButton.classList.remove('active');
+            chatWidgetButton.textContent = '💬';
+            chatWidgetButton.setAttribute('aria-label', 'Open chat');
         }
     });
-    
-    chatClose.addEventListener('click', () => {
-        chatWidget.classList.remove('open');
+
+    // Quick-option buttons — send as a real Gemini message
+    const optionQuestions = {
+        'services':     'What services does Melaku Digital Inc. offer?',
+        'ai-solutions': 'Tell me about your AI solutions.',
+        'compliance':   'Are you PIPEDA / Canadian compliant?',
+        'quote':        'I would like to request a quote.'
+    };
+
+    chatOptionButtons.forEach(btn => {
+        btn.addEventListener('click', () => {
+            const action = btn.getAttribute('data-action');
+            const question = optionQuestions[action];
+            if (!question) return;
+            if (chatOptions) chatOptions.style.display = 'none';
+            sendToGemini(question);
+        });
     });
-    
-    // Send message
+
+    // Send typed message
     function sendMessage() {
+        if (!chatInput) return;
         const message = chatInput.value.trim();
         if (!message) return;
-        
-        // Add user message
-        addMessage(message, 'user');
+        if (chatOptions) chatOptions.style.display = 'none';
         chatInput.value = '';
-        
-        // Simulate AI response
-        setTimeout(() => {
-            const response = generateAIResponse(message);
-            addMessage(response, 'ai');
-        }, 800);
+        sendToGemini(message);
     }
-    
-    chatSend.addEventListener('click', sendMessage);
-    chatInput.addEventListener('keypress', (e) => {
-        if (e.key === 'Enter') {
-            sendMessage();
+
+    if (chatSendButton) chatSendButton.addEventListener('click', sendMessage);
+    if (chatInput) {
+        chatInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') sendMessage();
+        });
+    }
+
+    // ---- Gemini API call ----
+    async function sendToGemini(userMessage) {
+        // Check config is loaded
+        if (typeof GEMINI_CONFIG === 'undefined' || !GEMINI_CONFIG.apiKey || GEMINI_CONFIG.apiKey === 'PASTE_YOUR_GEMINI_API_KEY_HERE') {
+            addMessage(userMessage, 'user');
+            addMessage('⚠️ Chat is not configured yet. Please add your Gemini API key to js/config.js.', 'bot');
+            return;
         }
-    });
-    
+
+        addMessage(userMessage, 'user');
+
+        // Disable input while waiting
+        if (chatSendButton) chatSendButton.disabled = true;
+        if (chatInput) chatInput.disabled = true;
+
+        // Show typing indicator
+        const typingId = showTyping();
+
+        // Build message history
+        conversationHistory.push({ role: 'user', parts: [{ text: userMessage }] });
+
+        // Build contents array — prepend system prompt as first user/model exchange
+        const contents = [
+            { role: 'user',  parts: [{ text: GEMINI_CONFIG.systemPrompt }] },
+            { role: 'model', parts: [{ text: 'Understood. I am the AI assistant for Melaku Digital Inc. and I am ready to help visitors.' }] },
+            ...conversationHistory
+        ];
+
+        try {
+            const res = await fetch(
+                `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_CONFIG.model}:generateContent?key=${GEMINI_CONFIG.apiKey}`,
+                {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ contents })
+                }
+            );
+
+            removeTyping(typingId);
+
+            if (!res.ok) {
+                const err = await res.json().catch(() => ({}));
+                const errMsg = err?.error?.message || `Error ${res.status}`;
+                addMessage(`Sorry, I encountered an issue: ${errMsg}`, 'bot');
+                conversationHistory.pop(); // remove failed user message
+                return;
+            }
+
+            const data = await res.json();
+            const reply = data?.candidates?.[0]?.content?.parts?.[0]?.text || 'Sorry, I did not get a response. Please try again.';
+
+            // Add assistant reply to history
+            conversationHistory.push({ role: 'model', parts: [{ text: reply }] });
+            addMessage(reply, 'bot');
+
+        } catch (error) {
+            removeTyping(typingId);
+            addMessage('Sorry, there was a network error. Please check your connection and try again.', 'bot');
+            conversationHistory.pop();
+        } finally {
+            if (chatSendButton) chatSendButton.disabled = false;
+            if (chatInput) { chatInput.disabled = false; chatInput.focus(); }
+        }
+    }
+
+    // ---- DOM helpers ----
     function addMessage(text, sender) {
         const messageDiv = document.createElement('div');
         messageDiv.className = `chat-message ${sender}-message`;
-        messageDiv.textContent = text;
+
+        const avatarDiv = document.createElement('div');
+        avatarDiv.className = 'message-avatar';
+        avatarDiv.textContent = sender === 'bot' ? '🤖' : '👤';
+
+        const contentDiv = document.createElement('div');
+        contentDiv.className = 'message-content';
+
+        // Render markdown-style line breaks and bullet points
+        text.split('\n').forEach(line => {
+            if (!line.trim()) return;
+            const p = document.createElement('p');
+            p.textContent = line;
+            contentDiv.appendChild(p);
+        });
+
+        messageDiv.appendChild(avatarDiv);
+        messageDiv.appendChild(contentDiv);
         chatMessages.appendChild(messageDiv);
         chatMessages.scrollTop = chatMessages.scrollHeight;
     }
-    
-    function generateAIResponse(message) {
-        const responses = {
-            'hello': 'Hello! How can I help you with web development, AI solutions, or app development today?',
-            'pricing': 'Our pricing is customized to your specific needs. Please fill out the contact form for a detailed quote.',
-            'services': 'We offer Web Development, App Development, AI Solutions, System Architecture, and Technical Consulting.',
-            'ai': 'We specialize in custom AI agents, workflow automation, and intelligent systems integration.',
-            'contact': 'You can reach us through the contact form below, or email us at info@melakudigitalinc.com',
-            'default': 'Thank you for your message! Our team will get back to you shortly. Feel free to fill out the contact form for detailed inquiries.'
-        };
-        
-        const lowerMessage = message.toLowerCase();
-        for (const key in responses) {
-            if (lowerMessage.includes(key)) {
-                return responses[key];
-            }
-        }
-        return responses.default;
+
+    function showTyping() {
+        const id = 'typing-' + Date.now();
+        const typingDiv = document.createElement('div');
+        typingDiv.className = 'chat-message bot-message';
+        typingDiv.id = id;
+        typingDiv.innerHTML = `
+            <div class="message-avatar">🤖</div>
+            <div class="message-content typing-indicator">
+                <span></span><span></span><span></span>
+            </div>`;
+        chatMessages.appendChild(typingDiv);
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+        return id;
+    }
+
+    function removeTyping(id) {
+        const el = document.getElementById(id);
+        if (el) el.remove();
     }
 });
 

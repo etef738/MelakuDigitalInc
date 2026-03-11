@@ -1,0 +1,24 @@
+# ============================================================
+# Melaku Digital Inc. — .gitignore
+# ============================================================
+
+# API keys & secrets — NEVER commit these
+js/config.js
+
+# OS files
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Editor directories
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Logs
+*.log
+npm-debug.log*
+
+# Node (if ever used)
+node_modules/

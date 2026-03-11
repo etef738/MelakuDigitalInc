@@ -1,0 +1,59 @@
+# ============================================================
+# Melaku Digital Inc. - Hostinger Apache Configuration
+# ============================================================
+
+# --- Directory Index ---
+DirectoryIndex index.html
+
+# --- Force HTTPS (uncomment after SSL is active on Hostinger) ---
+# RewriteEngine On
+# RewriteCond %{HTTPS} off
+# RewriteRule ^(.*)$ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
+
+# --- Redirect www to non-www ---
+# RewriteEngine On
+# RewriteCond %{HTTP_HOST} ^www\.(.+)$ [NC]
+# RewriteRule ^ https://%1%{REQUEST_URI} [R=301,L]
+
+# --- Custom Error Pages ---
+ErrorDocument 404 /index.html
+
+# --- MIME Types ---
+AddType text/css .css
+AddType application/javascript .js
+AddType image/svg+xml .svg
+AddType video/mp4 .mp4
+AddType font/woff2 .woff2
+AddType font/woff .woff
+
+# --- Enable Compression ---
+<IfModule mod_deflate.c>
+    AddOutputFilterByType DEFLATE text/html text/css application/javascript text/javascript image/svg+xml font/woff font/woff2
+</IfModule>
+
+# --- Browser Caching ---
+<IfModule mod_expires.c>
+    ExpiresActive On
+    ExpiresByType text/css "access plus 1 month"
+    ExpiresByType application/javascript "access plus 1 month"
+    ExpiresByType image/png "access plus 6 months"
+    ExpiresByType image/jpg "access plus 6 months"
+    ExpiresByType image/jpeg "access plus 6 months"
+    ExpiresByType image/gif "access plus 6 months"
+    ExpiresByType image/svg+xml "access plus 6 months"
+    ExpiresByType image/ico "access plus 6 months"
+    ExpiresByType video/mp4 "access plus 1 year"
+    ExpiresByType font/woff2 "access plus 1 year"
+    ExpiresByType font/woff "access plus 1 year"
+</IfModule>
+
+# --- Security Headers ---
+<IfModule mod_headers.c>
+    Header always set X-Content-Type-Options "nosniff"
+    Header always set X-Frame-Options "SAMEORIGIN"
+    Header always set X-XSS-Protection "1; mode=block"
+    Header always set Referrer-Policy "strict-origin-when-cross-origin"
+</IfModule>
+
+# --- Block directory listing ---
+Options -Indexes
