@@ -47,6 +47,12 @@ AddType font/woff .woff
     ExpiresByType font/woff "access plus 1 year"
 </IfModule>
 
+# --- Allow file access ---
+<FilesMatch "\.">
+    Order allow,deny
+    Allow from all
+</FilesMatch>
+
 # --- Security Headers ---
 <IfModule mod_headers.c>
     Header always set X-Content-Type-Options "nosniff"
@@ -57,3 +63,4 @@ AddType font/woff .woff
 
 # --- Block directory listing ---
 Options -Indexes
+Options +FollowSymLinks
