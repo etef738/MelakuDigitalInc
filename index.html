@@ -551,7 +551,10 @@
                     </div>
                 </div>
                 <div class="contact-form-wrapper">
-                    <form id="contact-form" action="mailto:info@melakudigitalinc.com" method="post" enctype="text/plain">
+                    <form id="contact-form" action="https://api.web3forms.com/submit" method="POST">
+                        <input type="hidden" name="access_key" value="187d66c9-4043-4252-b35d-14bd4823f24a">
+                        <input type="hidden" name="subject" value="New Inquiry from melakudigitalinc.com">
+                        <input type="hidden" name="redirect" value="https://melakudigitalinc.com/#contact">
                         <div class="form-group">
                             <label for="name">Name</label>
                             <input type="text" id="name" name="name" required placeholder="Your Name">
@@ -565,6 +568,7 @@
                             <textarea id="message" name="message" rows="5" required placeholder="How can we assist you?"></textarea>
                         </div>
                         <button type="submit" class="cta-button">Send Inquiry</button>
+                        <p id="form-status" style="margin-top:12px;display:none;"></p>
                     </form>
                 </div>
             </div>
@@ -589,6 +593,49 @@
     </footer>
     <script src="js/config.js"></script>
     <script src="js/script.js"></script>
+    <script>
+        const form = document.getElementById('contact-form');
+        const submitBtn = form.querySelector('button[type="submit"]');
+        const status = document.getElementById('form-status');
+        
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+        
+            const formData = new FormData(form);
+            const originalText = submitBtn.textContent;
+        
+            submitBtn.textContent = "Sending...";
+            submitBtn.disabled = true;
+            status.style.display = 'block';
+            status.style.color = '#C5A059';
+            status.textContent = 'Sending your message...';
+        
+            try {
+                const response = await fetch("https://api.web3forms.com/submit", {
+                    method: "POST",
+                    body: formData
+                });
+        
+                const data = await response.json();
+        
+                if (response.ok) {
+                    status.style.color = '#4CAF50';
+                    status.textContent = '✅ Success! Your message has been sent.';
+                    form.reset();
+                } else {
+                    status.style.color = '#f44336';
+                    status.textContent = '❌ Error: ' + data.message;
+                }
+        
+            } catch (error) {
+                status.style.color = '#f44336';
+                status.textContent = '❌ Something went wrong. Please try again.';
+            } finally {
+                submitBtn.textContent = originalText;
+                submitBtn.disabled = false;
+            }
+        });
+    </script>
     
     <!-- Cursor Glow Effect -->
     <div class="cursor-glow" id="cursorGlow"></div>

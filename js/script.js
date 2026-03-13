@@ -309,18 +309,21 @@ if (contactForm) {
         // Basic validation
         if (!nameInput.value.trim()) {
             e.preventDefault();
+            e.stopImmediatePropagation();
             showValidationError(nameInput, 'Please enter your name');
             return;
         }
         
         if (!emailInput.value.trim() || !isValidEmail(emailInput.value)) {
             e.preventDefault();
+            e.stopImmediatePropagation();
             showValidationError(emailInput, 'Please enter a valid email');
             return;
         }
         
         if (!messageInput.value.trim()) {
             e.preventDefault();
+            e.stopImmediatePropagation();
             showValidationError(messageInput, 'Please enter a message');
             return;
         }
