@@ -22,3 +22,7 @@ npm-debug.log*
 
 # Node (if ever used)
 node_modules/
+
+# Local-only folders (not part of the website)
+_archive/
+Claude outputs/
