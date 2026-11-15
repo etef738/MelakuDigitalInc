@@ -107,7 +107,9 @@ document.addEventListener('DOMContentLoaded', function() {
                 const scrolled = lastKnownScrollPosition;
                 
                 // Only toggle class when crossing the 100px threshold
-                const shouldBeScrolled = scrolled > 100;
+                // Two thresholds (hysteresis): the header shrinks ~36px when scrolled, which moves the page;
+                // a single 100px line made it flip back and forth (shaking). Shrink past 140px, grow back under 40px.
+                const shouldBeScrolled = isScrolledPast100 ? scrolled > 40 : scrolled > 140;
                 if (shouldBeScrolled !== isScrolledPast100) {
                     isScrolledPast100 = shouldBeScrolled;
                     if (shouldBeScrolled) {
