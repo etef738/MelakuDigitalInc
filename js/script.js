@@ -435,60 +435,34 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // ---- Gemini API call ----
+    // ---- Chat call (server-side proxy keeps the API key off the website) ----
     async function sendToGemini(userMessage) {
-        // Check config is loaded
-        if (typeof GEMINI_CONFIG === 'undefined' || !GEMINI_CONFIG.apiKey || GEMINI_CONFIG.apiKey === 'PASTE_YOUR_GEMINI_API_KEY_HERE') {
-            addMessage(userMessage, 'user');
-            addMessage('⚠️ Chat is not configured yet. Please add your Gemini API key to js/config.js.', 'bot');
-            return;
-        }
-
         addMessage(userMessage, 'user');
 
         // Disable input while waiting
         if (chatSendButton) chatSendButton.disabled = true;
         if (chatInput) chatInput.disabled = true;
 
-        // Show typing indicator
         const typingId = showTyping();
-
-        // Build message history
-        conversationHistory.push({ role: 'user', parts: [{ text: userMessage }] });
-
-        // Build contents array — prepend system prompt as first user/model exchange
-        const contents = [
-            { role: 'user',  parts: [{ text: GEMINI_CONFIG.systemPrompt }] },
-            { role: 'model', parts: [{ text: 'Understood. I am the AI assistant for Melaku Digital Inc. and I am ready to help visitors.' }] },
-            ...conversationHistory
-        ];
+        conversationHistory.push({ role: 'user', text: userMessage });
 
         try {
-            const res = await fetch(
-                `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_CONFIG.model}:generateContent?key=${GEMINI_CONFIG.apiKey}`,
-                {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ contents })
-                }
-            );
-
+            const res = await fetch('api/chat.php', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ messages: conversationHistory.slice(-20) })
+            });
+            const data = await res.json().catch(() => ({}));
             removeTyping(typingId);
 
-            if (!res.ok) {
-                const err = await res.json().catch(() => ({}));
-                const errMsg = err?.error?.message || `Error ${res.status}`;
-                addMessage(`Sorry, I encountered an issue: ${errMsg}`, 'bot');
+            if (!res.ok || !data.reply) {
+                addMessage(data.error || 'Sorry, the assistant is unavailable right now. Please email info@melakudigitalinc.com.', 'bot');
                 conversationHistory.pop(); // remove failed user message
                 return;
             }
 
-            const data = await res.json();
-            const reply = data?.candidates?.[0]?.content?.parts?.[0]?.text || 'Sorry, I did not get a response. Please try again.';
-
-            // Add assistant reply to history
-            conversationHistory.push({ role: 'model', parts: [{ text: reply }] });
-            addMessage(reply, 'bot');
+            conversationHistory.push({ role: 'model', text: data.reply });
+            addMessage(data.reply, 'bot');
 
         } catch (error) {
             removeTyping(typingId);
