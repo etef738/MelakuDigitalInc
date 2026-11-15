@@ -3089,7 +3089,7 @@ section h2 {
 }
 
 .message-content li {
-    font-size: inherit;
+    font-size: 14px;
     line-height: 1.5;
     margin: 2px 0;
 }

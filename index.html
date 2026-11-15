@@ -34,7 +34,7 @@
     <link rel="icon" type="image/png" sizes="32x32" href="assets/icons/logo/png/favicon-32.png">
     <link rel="icon" type="image/svg+xml" href="assets/icons/logo/svg/melaku-digital-icon.svg">
     <link rel="apple-touch-icon" href="assets/icons/logo/png/apple-touch-icon.png">
-    <link rel="stylesheet" href="css/style.css?v=20261115c">
+    <link rel="stylesheet" href="css/style.css?v=20261115d">
     
     <!-- Schema.org JSON-LD -->
     <script type="application/ld+json">
@@ -186,7 +186,7 @@
                     <div class="demo-content" id="demo-ai-dev">
                         <p style="color: rgba(204, 214, 246, 0.85); font-size: 14px; line-height: 1.6; margin: 0;">
                             <strong style="color: #C5A059; display: block; margin-bottom: 8px;">Hyremo AI &mdash; AI Receptionist</strong>
-                            A voice agent that answers business calls from approved knowledge, takes appointment requests, sends SMS and email follow-ups, and hands the call to a person when needed.
+                            A voice agent that answers business calls from approved knowledge, takes appointment requests, emails customers their confirmations and reminders, and alerts the owner by email and text.
                         </p>
                     </div>
                 </div>
@@ -352,7 +352,7 @@
                             </div>
                         </div>
                         <p class="live-desc">Answers your business calls from approved knowledge and takes appointment requests, the first role in an AI workforce.</p>
-                        <div class="live-tags"><span class="tag">Voice AI</span><span class="tag">Knowledge Base</span><span class="tag">SMS &amp; Email</span><span class="tag">Live Call Transfer</span><span class="tag">Usage-Based Billing</span></div>
+                        <div class="live-tags"><span class="tag">Voice AI</span><span class="tag">Knowledge Base</span><span class="tag">Calendar Booking</span><span class="tag">Email Confirmations</span><span class="tag">Owner Alerts</span><span class="tag">Usage-Based Billing</span></div>
                         <div class="live-links">
                             <a class="project-link" href="https://hyremo.ai/" target="_blank" rel="noopener noreferrer" aria-label="Visit Site: Hyremo AI (opens in a new tab)"><svg class="action-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><path d="M15 3h6v6"></path><path d="M10 14 21 3"></path></svg> Visit Site</a>
                         </div>
@@ -381,7 +381,7 @@
                                 <p class="live-sub">Private iOS Journal</p>
                             </div>
                         </div>
-                        <p class="live-desc">Journal, draw and record lectures with on-device transcription. No account, no servers, no tracking.</p>
+                        <p class="live-desc">Journal, draw and record lectures with on-device transcription. No account and no servers of ours: your journal stays on your device, or in your own iCloud if you choose. Optional AI reflections, only if you turn them on, send selected text to an AI provider.</p>
                         <div class="live-tags"><span class="tag">iOS Development</span><span class="tag">On-Device AI</span><span class="tag">CloudKit</span><span class="tag">Privacy Architecture</span><span class="tag">Swift</span></div>
                         <div class="live-links">
                             <a class="project-link" href="https://apps.apple.com/ca/app/rhythm-journal/id6794914551" target="_blank" rel="noopener noreferrer" aria-label="App Store: Rhythm Journal (opens in a new tab)"><svg class="action-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M16.5 3.5c-.9.6-1.5 1.6-1.4 2.6 1-.1 2-.7 2.6-1.5.6-.8.9-1.8.8-2.6-.8 0-1.5.5-2 1.5z"></path><path d="M19 16.5c-.4.9-.7 1.3-1.2 2.1-.8 1.2-1.9 2.7-3.3 2.7-1.2 0-1.5-.8-3.1-.8s-1.9.8-3.1.8c-1.4 0-2.5-1.4-3.3-2.6-2.2-3.3-2.4-7.2-1.1-9.2 1-1.4 2.4-2.2 3.8-2.2 1.5 0 2.4.8 3.6.8 1.2 0 1.9-.8 3.6-.8 1.3 0 2.7.7 3.7 2-3.2 1.7-2.7 6.2-.1 7.2z"></path></svg> App Store</a>
@@ -718,7 +718,7 @@
             </div>
         </div>
     </footer>
-    <script src="js/script.js?v=20261115c"></script>
+    <script src="js/script.js?v=20261115d"></script>
     <script>
         const form = document.getElementById('contact-form');
         const submitBtn = form.querySelector('button[type="submit"]');
@@ -780,8 +780,8 @@
                 <div class="chat-message bot-message">
                     <div class="message-avatar">🤖</div>
                     <div class="message-content">
-                        <p>👋 Hello! I'm your AI assistant at Melaku Digital Inc.</p>
-                        <p>We specialize in AI-powered enterprise solutions, custom software development, and intelligent automation for Canadian organizations.</p>
+                        <p>👋 Hi! I'm the Melaku Digital Inc. assistant.</p>
+                        <p>Ask me about our services, our products like Hyremo AI, Hyremot, Rhythm Journal and InvoiceElite, or how to reach the right team.</p>
                         <p>How can I help you today?</p>
                     </div>
                 </div>
@@ -790,11 +790,11 @@
                 <button class="chat-option-button" data-action="services">
                     What services do you offer?
                 </button>
-                <button class="chat-option-button" data-action="ai-solutions">
-                    Tell me about AI solutions
+                <button class="chat-option-button" data-action="products">
+                    Tell me about your products
                 </button>
-                <button class="chat-option-button" data-action="compliance">
-                    Are you Canadian compliant?
+                <button class="chat-option-button" data-action="support">
+                    How do I get support for an app?
                 </button>
                 <button class="chat-option-button" data-action="quote">
                     Request a quote
