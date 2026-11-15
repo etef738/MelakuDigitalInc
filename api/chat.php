@@ -34,12 +34,18 @@ if (!$originHost || !in_array(strtolower($originHost), $allowedHosts, true)) {
 
 // --- 2. Load the secret key from outside public_html ----------------------
 $secretFile = dirname(__DIR__, 2) . '/private/gemini-key.php';
-$config = is_readable($secretFile) ? (require $secretFile) : [];
+$config = [];
+if (is_readable($secretFile)) {
+    try { $config = require $secretFile; } catch (\Throwable $e) {
+        error_log('MDI chat: cannot read private/gemini-key.php');
+        reply(503, ['error' => 'Chat is not configured yet.']);
+    }
+}
 $apiKey = is_array($config) ? trim((string)($config['key'] ?? '')) : '';
 if ($apiKey === '') {
     $apiKey = trim((string)getenv('GEMINI_API_KEY'));
 }
-$model = is_array($config) && !empty($config['model']) ? (string)$config['model'] : 'gemini-2.5-flash';
+$model = is_array($config) && !empty($config['model']) ? (string)$config['model'] : 'gemini-3.8-flash';
 if ($apiKey === '' || !preg_match('/^[A-Za-z0-9._-]+$/', $model)) {
     reply(503, ['error' => 'Chat is not configured yet.']);
 }
@@ -109,7 +115,7 @@ Technology startups, agencies and SaaS companies (white-label and subcontract wo
 Email info@melakudigitalinc.com, or use the contact form on the website.
 
 == RULES ==
-- Be helpful, concise and professional. Use short paragraphs or short bullet lists.
+- Be helpful, concise and professional. Keep answers under 120 words. Use short paragraphs; for lists start each line with "- ". You may use **bold** for product names. Do not use headings, tables or markdown links; write web addresses as plain text (for example hyremo.ai).
 - Pricing is project-based. For quotes, direct visitors to the contact form or email.
 - Only discuss Melaku Digital Inc., its services and its products. Politely redirect anything unrelated.
 - Never invent facts, prices, clients, statistics or guarantees. If you do not know, say so and suggest contacting the team.
@@ -122,15 +128,14 @@ PROMPT;
 $payload = json_encode([
     'systemInstruction' => ['parts' => [['text' => $systemPrompt]]],
     'contents' => $contents,
-    'generationConfig' => ['temperature' => 0.6, 'maxOutputTokens' => 600],
+    'generationConfig' => ['temperature' => 0.6, 'maxOutputTokens' => 2048],
 ], JSON_UNESCAPED_UNICODE);
 
-// Vertex AI "express mode" keys start with "AQ."; classic Gemini API keys start with "AIza".
-$endpoints = strncmp($apiKey, 'AQ.', 3) === 0
-    ? ['https://aiplatform.googleapis.com/v1/publishers/google/models/' . rawurlencode($model) . ':generateContent',
-       'https://generativelanguage.googleapis.com/v1beta/models/' . rawurlencode($model) . ':generateContent']
-    : ['https://generativelanguage.googleapis.com/v1beta/models/' . rawurlencode($model) . ':generateContent',
-       'https://aiplatform.googleapis.com/v1/publishers/google/models/' . rawurlencode($model) . ':generateContent'];
+// Try the Gemini API first; fall back to Vertex AI (works for both AIza... and AQ. keys).
+$endpoints = [
+    'https://generativelanguage.googleapis.com/v1beta/models/' . rawurlencode($model) . ':generateContent',
+    'https://aiplatform.googleapis.com/v1/publishers/google/models/' . rawurlencode($model) . ':generateContent',
+];
 
 $resp = false; $code = 0; $errors = [];
 foreach ($endpoints as $url) {
