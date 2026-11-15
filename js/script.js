@@ -403,8 +403,8 @@ document.addEventListener('DOMContentLoaded', () => {
     // Quick-option buttons — send as a real Gemini message
     const optionQuestions = {
         'services':     'What services does Melaku Digital Inc. offer?',
-        'ai-solutions': 'Tell me about your AI solutions.',
-        'compliance':   'Are you PIPEDA / Canadian compliant?',
+        'products':     'What products have you built, and where can I try them?',
+        'support':      'How do I contact support for one of your apps?',
         'quote':        'I would like to request a quote.'
     };
 
