@@ -3080,3 +3080,20 @@ section h2 {
         background: linear-gradient(180deg, rgba(7, 20, 42, 0.85) 0%, rgba(7, 20, 42, 0.7) 100%) !important;
     }
 }
+
+
+/* Chat answer lists */
+.message-content ul {
+    margin: 4px 0 8px;
+    padding-left: 18px;
+}
+
+.message-content li {
+    font-size: inherit;
+    line-height: 1.5;
+    margin: 2px 0;
+}
+
+.message-content strong {
+    color: var(--text-bright, #E6F1FF);
+}

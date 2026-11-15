@@ -486,12 +486,30 @@ document.addEventListener('DOMContentLoaded', () => {
         const contentDiv = document.createElement('div');
         contentDiv.className = 'message-content';
 
-        // Render markdown-style line breaks and bullet points
+        // Render a safe subset of formatting: **bold** and "- " / "* " bullet lines (no raw HTML)
+        let list = null;
         text.split('\n').forEach(line => {
-            if (!line.trim()) return;
-            const p = document.createElement('p');
-            p.textContent = line;
-            contentDiv.appendChild(p);
+            const t = line.trim();
+            if (!t) { list = null; return; }
+            const bullet = /^[-*\u2022]\s+/.test(t);
+            const content = bullet ? t.replace(/^[-*\u2022]\s+/, '') : t;
+            const el = document.createElement(bullet ? 'li' : 'p');
+            content.split(/(\*\*[^*]+\*\*)/g).forEach(part => {
+                if (/^\*\*[^*]+\*\*$/.test(part)) {
+                    const b = document.createElement('strong');
+                    b.textContent = part.slice(2, -2);
+                    el.appendChild(b);
+                } else if (part) {
+                    el.appendChild(document.createTextNode(part.replace(/\*/g, '')));
+                }
+            });
+            if (bullet) {
+                if (!list) { list = document.createElement('ul'); contentDiv.appendChild(list); }
+                list.appendChild(el);
+            } else {
+                list = null;
+                contentDiv.appendChild(el);
+            }
         });
 
         messageDiv.appendChild(avatarDiv);
